@@ -4,6 +4,7 @@
 .bar {
   position: relative;
   height: 84px;
+  max-width: 100%;
   border-radius: 42px;
   background: linear-gradient(180deg, var(--bar-from) 0%, var(--bar-to) 100%);
   /*
@@ -134,6 +135,16 @@
 .clip {
   position: absolute;
   inset: 0;
+}
+
+.bar:not(.vertical):not(.collapsed) .clip {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.bar:not(.vertical):not(.collapsed) .clip::-webkit-scrollbar {
+  display: none;
 }
 
 .panel {
