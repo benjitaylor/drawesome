@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { memo, useId } from "react";
 import type { PenId } from "../engine/types";
 
 /**
@@ -18,7 +18,12 @@ const H = 88;
 const APEX = 4;
 const SHOULDER = 31;
 
-export function ToolIcon({
+/**
+ * Memoised: the bar keeps every panel mounted, so a colour or size change
+ * anywhere in the toolbar re-rendered all seven pen drawings. Every prop here
+ * is a primitive, so the comparison is exact.
+ */
+export const ToolIcon = memo(function ToolIcon({
   id,
   color,
   size = 30,
@@ -293,7 +298,7 @@ export function ToolIcon({
       )}
     </svg>
   );
-}
+});
 
 type G = Record<string, string>;
 type Parts = { g: G; color: string; look: Look };

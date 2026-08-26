@@ -60,7 +60,11 @@ export function MorphBar({
       cancelAnimationFrame(id);
       ro.disconnect();
     };
-  }, [active, panels, vertical, onMeasure]);
+    // `panels` is deliberately not a dependency: callers build it inline, so a
+    // fresh array every render re-ran this effect every render — a forced
+    // scrollWidth read, a setExtent that renders again, and a ResizeObserver
+    // recreated. The observer below already covers content-size changes.
+  }, [active, vertical, onMeasure]);
 
   const size =
     extent === null
