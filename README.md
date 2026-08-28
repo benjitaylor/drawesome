@@ -83,6 +83,7 @@ The eraser takes away area rather than whole strokes, so you can rub out part of
 | `shortcuts` | `boolean` | `true` | Single-key shortcuts |
 | `startMinimized` | `boolean` | `false` | Start collapsed |
 | `drawWhenMinimized` | `boolean` | `false` | Keep the canvas live while the bar is a disc |
+| `minimizeAlign` | `"start" \| "end"` | nearest end | Which end of the edge the bar folds into |
 
 **Ref handle**
 

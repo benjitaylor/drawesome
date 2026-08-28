@@ -109,6 +109,13 @@ export type DrawProps = {
   inset?: number | string;
   /** Where along that edge it sits. */
   align?: "start" | "center" | "end";
+  /**
+   * Which end of that edge the bar folds into when it is minimised.
+   *
+   * A centred bar has no nearer end and picks one. Name the other when the
+   * app keeps a control of its own in that corner.
+   */
+  minimizeAlign?: "start" | "end";
   /** "auto" follows the OS; the others force it. */
   theme?: "light" | "dark" | "auto";
   /**
@@ -158,6 +165,7 @@ export const Draw = forwardRef<DrawHandle, DrawProps>(function Draw(
     placement = "bottom",
     inset,
     align = "center",
+    minimizeAlign,
     theme = "light",
     drawWhenMinimized = false,
     startMinimized = false,
@@ -577,8 +585,9 @@ export const Draw = forwardRef<DrawHandle, DrawProps>(function Draw(
       ? b.left + b.width / 2 - r.left
       : b.top + b.height / 2 - r.top;
     // A bar square in the middle has no nearer end, so it keeps the one it has
-    // always folded to.
-    const dir = centre / span < 0.48 ? -1 : 1;
+    // always folded to — unless the host names the end itself.
+    const nearest = centre / span < 0.48 ? "start" : "end";
+    const dir = (minimizeAlign ?? nearest) === "start" ? -1 : 1;
     /*
      * Aimed at a point, not moved by a guessed distance.
      *
@@ -614,7 +623,7 @@ export const Draw = forwardRef<DrawHandle, DrawProps>(function Draw(
 
     // Only when the collapse itself begins.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collapsed, placement, pin]);
+  }, [collapsed, minimizeAlign, placement, pin]);
 
   /*
    * The bar has to outlive `chrome` going false, or there is nothing left to
