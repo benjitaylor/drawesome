@@ -1,6 +1,8 @@
 packages:
   - "packages/*"
   - "apps/*"
+  - "tests"
 
-onlyBuiltDependencies:
-  - esbuild
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true

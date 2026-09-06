@@ -1,0 +1,161 @@
+/* Sizeable by whatever holds it: the bar wants a compact slider, a popover
+   hanging off a tool has room for a longer throw. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: var(--field-w, 148px);
+  flex: none;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: -0.003rem;
+}
+
+.label {
+  color: var(--ink-faint);
+}
+
+.value {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The track does not clip — the knob is its sibling, and clipping it was
+   lopping the knob in half at 100%. */
+.track {
+  position: relative;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.groove {
+  position: absolute;
+  inset: 2px 0;
+  border-radius: 6px;
+  background: var(--sunk);
+  overflow: hidden;
+}
+
+/* A wider hit area than the visible track — 12px is too fine to hit reliably
+   with a thumb, but a fat track would look clumsy. */
+.track::before {
+  content: "";
+  position: absolute;
+  inset: -10px -4px;
+}
+
+.checker {
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+      rgba(0, 0, 0, 0.1) 0% 25%,
+      transparent 0% 50%
+    )
+    50% / 8px 8px;
+}
+
+.fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 6px;
+  transition: width 340ms var(--ease-smooth);
+}
+
+/* Once you're actually dragging, the knob must sit under the finger — any
+   easing there reads as lag. */
+.track[data-dragging="true"] .fill {
+  transition: none;
+}
+
+.knob {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--raised);
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.16),
+    0 1px 4px rgba(0, 0, 0, 0.22);
+  translate: -50% -50%;
+  transition:
+    left 340ms var(--ease-smooth),
+    transform 160ms var(--ease-smooth);
+  pointer-events: none;
+}
+
+.track[data-dragging="true"] .knob {
+  transition: transform 160ms var(--ease-smooth);
+}
+
+.track:hover .knob,
+.track[data-dragging="true"] .knob {
+  transform: scale(1.14);
+}
+.track[data-dragging="true"] .knob {
+  transition: transform 160ms var(--ease-smooth);
+}
+
+/* ----------------------------------------------------------- vertical */
+
+.fieldVertical {
+  width: auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fieldVertical .head {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.trackVertical {
+  width: 16px;
+  height: 120px;
+}
+
+.trackVertical::before {
+  inset: -4px -10px;
+}
+
+.trackVertical .groove {
+  inset: 0 2px;
+}
+
+.trackVertical .fill {
+  top: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: auto;
+  transition: height 340ms var(--ease-smooth);
+}
+
+.trackVertical[data-dragging="true"] .fill {
+  transition: none;
+}
+
+.trackVertical .knob {
+  top: auto;
+  left: 50%;
+  transition:
+    bottom 340ms var(--ease-smooth),
+    transform 160ms var(--ease-smooth);
+  translate: -50% 50%;
+}
+
+.trackVertical[data-dragging="true"] .knob {
+  transition: transform 160ms var(--ease-smooth);
+}

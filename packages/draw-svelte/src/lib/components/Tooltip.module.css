@@ -1,0 +1,292 @@
+/*
+ * A chunky little label, pitched somewhere near a game UI: heavy rounding, a
+ * solid fill with no border, and a spring as it lands. It's a toy for drawing,
+ * and the tray is a row of actual pens — a thin grey system tooltip would be
+ * the one flat note in it.
+ */
+
+/* Carries the position, and nothing else. */
+.anchor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  will-change: transform;
+  transition: transform 280ms cubic-bezier(0.33, 0.94, 0.24, 1);
+}
+
+.tip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Sized from its contents in JS so the width can be animated at all: there
+     is no transitioning from `auto`, so the pill would otherwise snap to each
+     new label while the text was still crossing. */
+  box-sizing: content-box;
+  padding: 7px 12px 8px;
+  border-radius: 999px;
+  background: #26262b;
+  color: #fff;
+  white-space: nowrap;
+  /*
+   * Its own stack, spelled out. This is portalled to <body> to escape the
+   * bar's clipping, so it inherits the *host page's* font rather than the
+   * component's — and a package that quietly renders its labels in whatever
+   * the embedding site set for body text is not one you can drop in.
+   */
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  font-synthesis: none;
+  transform-origin: 50% calc(100% + 4px);
+  /* Centred on the anchor and lifted clear of it. */
+  transform: translate(-50%, -100%);
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.14),
+    0 8px 20px rgb(0 0 0 / 0.22);
+  animation: pop 320ms cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  transition: width 280ms cubic-bezier(0.33, 0.94, 0.24, 1);
+  /* The aperture the drum turns behind. */
+  overflow: hidden;
+  /*
+   * Shallow enough to be felt rather than seen. A long perspective flattens
+   * the roll back into a slide; too short and the label fans out like a
+   * splayed card as it turns.
+   */
+  perspective: 190px;
+  perspective-origin: 50% 50%;
+}
+
+/* Shading, read as a cylinder lying on its side. */
+.tip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.09) 0%,
+    rgb(255 255 255 / 0.05) 34%,
+    rgb(0 0 0 / 0) 60%,
+    rgb(0 0 0 / 0.1) 100%
+  );
+}
+
+/* Beside the tool, on a rail: centred on it vertically and clear of its edge. */
+.tip[data-at="right"] {
+  transform: translate(0, -50%);
+  transform-origin: -4px 50%;
+  animation-name: popRight;
+}
+
+.tip[data-at="left"] {
+  transform: translate(-100%, -50%);
+  transform-origin: calc(100% + 4px) 50%;
+  animation-name: popLeft;
+}
+
+/* On the way out: back down into the tool it belongs to. */
+.tip[data-closing] {
+  animation: popOut 170ms cubic-bezier(0.4, 0, 0.9, 0.5) both;
+}
+
+.tip[data-at="right"][data-closing] {
+  animation-name: popOutRight;
+}
+
+.tip[data-at="left"][data-closing] {
+  animation-name: popOutLeft;
+}
+
+/* The text, and only the text. */
+.face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+  /* Each label is a facet of the drum, not a flat layer sliding past. */
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  animation: rollIn 300ms cubic-bezier(0.33, 0.94, 0.24, 1) both;
+}
+
+/*
+ * Out of the flow, so the one arriving is what the pill sizes itself to — but
+ * pinned to its own centre rather than stretched to the pill's box. Stretched,
+ * it stands taller than the label replacing it, and two facets of different
+ * heights turning at the same rate can't help but cross.
+ */
+.face[data-leaving] {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  animation: rollOut 300ms cubic-bezier(0.33, 0.94, 0.24, 1) both;
+}
+
+/* The drum. */
+@keyframes rollIn {
+  from {
+    opacity: 0;
+    transform: translateY(112%) rotateX(-78deg);
+  }
+  55% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+  }
+}
+
+/* Both percentages resolve against this element's own height, so it climbs by
+   exactly the amount the incoming label descends — they stay a full label
+   apart for the whole of the turn. */
+@keyframes rollOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotateX(0deg);
+  }
+  45% {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -162%) rotateX(78deg);
+  }
+}
+
+.label {
+  font-size: 12.5px;
+  font-weight: 620;
+  letter-spacing: 0.005em;
+  line-height: 1;
+}
+
+/* The shortcut, as a key rather than as more prose. */
+.hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 5px;
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* Overshoots a little on the way in, which is most of the character. */
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.72) translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1) translateY(0);
+  }
+}
+
+@keyframes popOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.82) translateY(4px);
+  }
+}
+
+@keyframes popOutRight {
+  from {
+    opacity: 1;
+    transform: translate(0, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(0, -50%) scale(0.82) translateX(-4px);
+  }
+}
+
+@keyframes popOutLeft {
+  from {
+    opacity: 1;
+    transform: translate(-100%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-100%, -50%) scale(0.82) translateX(4px);
+  }
+}
+
+@keyframes popRight {
+  from {
+    opacity: 0;
+    transform: translate(0, -50%) scale(0.72) translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, -50%) scale(1) translateX(0);
+  }
+}
+
+@keyframes popLeft {
+  from {
+    opacity: 0;
+    transform: translate(-100%, -50%) scale(0.72) translateX(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-100%, -50%) scale(1) translateX(0);
+  }
+}
+
+/* A bounce is the point of this, but not at the cost of ignoring the setting. */
+@media (prefers-reduced-motion: reduce) {
+  .anchor {
+    transition: none;
+  }
+  .face,
+  .face[data-leaving] {
+    animation-duration: 100ms;
+    animation-timing-function: linear;
+  }
+  .tip {
+    animation: fade 120ms linear both;
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/*
+ * Dark in both schemes, deliberately.
+ *
+ * This used to invert with `prefers-color-scheme`, which meant a pale pill on a
+ * pale canvas — the label competing with the paper instead of sitting over it.
+ * A hover label is a passing annotation on the drawing, not part of the page's
+ * surface, and the one thing it has to be is legible against whatever is under
+ * it. That argues for one treatment rather than two. A host that wants
+ * otherwise has `tooltips={{ style }}`, which lands after this.
+ */

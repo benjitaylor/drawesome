@@ -1,5 +1,6 @@
 node_modules
 dist
+.svelte-kit
 .DS_Store
 *.local
 
@@ -13,3 +14,7 @@ packages/draw/LICENSE
 packages/draw/logo.svg
 packages/draw/logo-dark.svg
 .vercel
+
+# Browser test artifacts.
+playwright-report
+test-results

@@ -1,0 +1,233 @@
+/* One object that changes shape. Panels stack and cross-fade; the container
+   animates along a single axis between their measured sizes. */
+
+.bar {
+  position: relative;
+  height: 84px;
+  border-radius: 42px;
+  background: linear-gradient(180deg, var(--bar-from) 0%, var(--bar-to) 100%);
+  /*
+   * Sized to land inside the bar's own inset. A shadow reaches roughly its
+   * y-offset plus half its blur past the edge, so these stay under the 20px
+   * the bar is held off the boundary by — beyond that it gets cut off square
+   * wherever the surrounding colour changes.
+   */
+  box-shadow:
+    inset 0 1px 0 var(--bar-sheen),
+    0 0 0 0.5px var(--bar-edge),
+    0 1px 2px rgba(0, 0, 0, calc(0.05 * var(--bar-lift, 1))),
+    0 5px 12px rgba(0, 0, 0, calc(0.09 * var(--bar-lift, 1))),
+    0 9px 20px rgba(0, 0, 0, calc(0.06 * var(--bar-lift, 1)));
+  /* Pens are taller than the bar; their lower halves are cut off so they read
+     as standing in a slot rather than floating in front of one. */
+  overflow: hidden;
+  /* A longer, flatter tail than `--ease-smooth`. */
+  --ease-settle: cubic-bezier(0.22, 0.9, 0.16, 1);
+
+  transition:
+    width 520ms var(--ease-settle),
+    height 520ms var(--ease-settle),
+    border-radius 440ms var(--ease-settle),
+    translate 540ms var(--ease-settle),
+    scale 540ms var(--ease-settle),
+    transform 540ms var(--ease-settle);
+}
+
+/* Collapsed: the same object, shrunk to a disc and parked in the corner.
+   Two class selectors so this outranks the vertical rail's `height: auto` —
+   at equal specificity the rail won and the disc had zero height. */
+/* Collapsed: the pill closes up into its own end cap. */
+.bar.collapsed {
+  width: 84px;
+  /* Then down to the size it always was. A uniform scale can't distort — the
+     circle is already a circle by the time this takes effect, so it only ever
+     gets smaller, never squashed. 56/84. */
+  scale: 0.667;
+  /*
+     Shrunk toward whichever edge the bar is anchored by, not toward its middle.
+     A centre-scaled box pulls both its edges inward, so a bar pinned to the
+     right of the screen drifts away from that edge as it closes and drifts
+     back as it settles — a lurch of about thirty pixels, for no reason the eye
+     can account for.
+  */
+  transform-origin: var(--fold-origin, center);
+  min-width: 0;
+  overflow: hidden;
+  clip-path: none;
+  cursor: pointer;
+}
+
+/* A rail closes along its own long axis, to the width it already has. */
+.bar.vertical.collapsed {
+  width: 66px;
+  height: 66px;
+  /* 56/66. */
+  scale: 0.848;
+}
+
+/* Nothing inside a collapsed bar may take a click. This is the rule whose
+   absence gave the disc a dead centre. */
+.bar.collapsed .panel,
+.bar.collapsed .collapsedContent {
+  pointer-events: none;
+}
+
+/* The rest of the bar dissolves around the tool, slower than the icon
+   arrives, so the two overlap. Any gap between them shows as an empty white
+   disc halfway through the collapse. */
+.bar.collapsed .panel {
+  transition:
+    opacity 300ms ease-out,
+    filter 260ms ease-out,
+    transform 300ms ease-out;
+  /* Defocusing as it goes: the tools soften away rather than simply thinning,
+     which is what stops a long row of them reading as a fading screenshot. */
+  filter: blur(9px);
+  transform: scale(0.94);
+}
+
+/* The expand target: the whole face of the disc, above everything else. */
+.expandHit {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The selected tool, standing in the disc: full tip, base clipped, exactly as
+   the pens sit in the open tray. */
+.collapsedContent {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 7px;
+  opacity: 0;
+  /* Soft on the way out, so it recedes with the bar rather than snapping off. */
+  filter: blur(6px);
+  pointer-events: none;
+  transition:
+    opacity 200ms ease-out,
+    filter 200ms ease-out;
+}
+
+/* The tool is there from the first frame and pulls into focus, so the bar
+   closes around something already in your hand rather than swapping one
+   picture for another. Opacity and blur run independently: delaying the blur
+   costs nothing, delaying the opacity reopens the gap. */
+.collapsedContent[data-shown] {
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    opacity 140ms ease-in,
+    filter 320ms var(--ease-smooth);
+}
+
+/* Pinned to the bar's own box, so a rail has something its size to clip to. */
+.clip {
+  position: absolute;
+  inset: 0;
+}
+
+.panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.125rem;
+  /* Clears the pill's 42px curve — 20px left content crowding the round end. */
+  padding: 0 2rem;
+  width: max-content;
+  /* Blur and scale rather than a plain fade: the outgoing panel reads as
+     receding into the bar instead of being wiped off it. */
+  /*
+   * The scale rides the bar's own curve and duration.
+   *
+   * A panel's scale and the bar's width are one movement: the box grows and
+   * what's in it grows with it. Given its own timing the content finished
+   * around 120ms early and on a much sharper curve, so it arrived at full size
+   * inside a bar that was still widening. Opacity and blur stay quick and stay
+   * on their own curve; a fade doesn't have to track a size.
+   */
+  transition:
+    opacity 260ms var(--ease-smooth),
+    filter 340ms var(--ease-smooth),
+    transform 520ms var(--ease-settle);
+  opacity: 0;
+  filter: blur(8px);
+  transform: scale(0.86);
+  pointer-events: none;
+}
+
+.panel[data-active] {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+  pointer-events: auto;
+  /* Per property, in the order they're listed above: the fade and the focus
+     pull wait a beat so content never arrives ahead of the shape it belongs
+     in, while the scale starts with the width it's tracking. */
+  transition-delay: 60ms, 60ms, 0ms;
+}
+
+/* ------------------------------------------------------- vertical rails */
+
+/* Laid down an edge: the height morphs, the pens turn to face the canvas.
+   A rail of upright pens is just the bottom bar tipped over, and reads as a
+   mistake. */
+.vertical {
+  width: 66px;
+  height: auto;
+  border-radius: 33px;
+  /* Clipped on the outer edge only, so resting pens stay seated while the
+     selected one lifts clear toward the canvas. `overflow` can't express
+     "one side", so the rails set a clip-path instead. */
+  overflow: visible;
+}
+
+/*
+ * The clip runs past the outer edge so a selected pen can lift toward the
+ * canvas, and stops dead at the inner one so the barrels are cut off
+ * there.
+ */
+/*
+ * The disc clips like the rail it came from.
+ *
+ * A rail leaves its outer edge open so a selected pen can lift toward the
+ * canvas, and the collapsed content inherits that — so while the bar is
+ * expanding, the tool standing in the disc briefly hangs outside it.
+ */
+.vertical[data-side="left"] .clip,
+.vertical[data-side="left"] .collapsedContent {
+  clip-path: inset(0 -160px 0 0);
+}
+
+.vertical[data-side="right"] .clip,
+.vertical[data-side="right"] .collapsedContent {
+  clip-path: inset(0 0 0 -160px);
+}
+
+.vertical .panel {
+  /* The rail's width exactly. `max-content` measures the turned pens, which
+     hang far outside it by design, and drags the whole bar out with them. */
+  width: 66px;
+  height: max-content;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 1.25rem 0;
+}
+
+/* Rows that sit centred rather than seated at the bottom, for panels with no
+   pens in them. */
+.centered {
+  align-items: center;
+  gap: 0.5rem;
+}

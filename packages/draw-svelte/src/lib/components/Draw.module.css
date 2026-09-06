@@ -1,0 +1,283 @@
+/* Self-contained: nothing this component paints falls outside its own box. */
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--workspace);
+  border-radius: inherit;
+}
+
+/* Nothing painted, so whatever is behind shows through. */
+.root[data-background="none"] {
+  background: transparent;
+}
+
+.surface {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.toolbar {
+  position: absolute;
+  z-index: 30;
+  --sd-motion: 360ms;
+  /* The fade is deliberately shorter than the travel; see below. */
+  --sd-motion-fade: calc(var(--sd-motion) * 0.75);
+}
+
+/*
+ * Arriving and leaving, off whichever edge the bar is on.
+ *
+ * It used to rise vertically whichever edge it was on, so a left or right rail
+ * came up from below and sat down through the canvas — travel across an edge it
+ * wasn't attached to. The direction is the placement's now.
+ *
+ * Two animations rather than one, because the rise and the fade want different
+ * curves. On a single curve the fade inherits the snappy one, which overshoots,
+ * so the bar is almost fully opaque within the first fifty milliseconds and
+ * reads as flashing on and then sliding. Opacity gets a plain ease-out over a
+ * shorter run; the travel keeps the snap.
+ */
+.toolbar[data-motion-in="rise"] {
+  animation:
+    sdBarRise var(--sd-motion) var(--ease-snappy) backwards,
+    sdBarFade var(--sd-motion-fade) ease-out backwards;
+}
+
+.toolbar[data-placement="left"][data-motion-in="rise"] {
+  animation-name: sdBarRiseLeft, sdBarFade;
+}
+
+.toolbar[data-placement="right"][data-motion-in="rise"] {
+  animation-name: sdBarRiseRight, sdBarFade;
+}
+
+/*
+ * On the way out, back through the edge it came from — and faster.
+ *
+ * A bar that leaves as slowly as it arrives feels like it is refusing to go.
+ * Dismissal wants to be over; arrival is the part worth watching.
+ */
+.toolbar[data-leaving][data-motion-out="rise"] {
+  animation:
+    sdBarFall calc(var(--sd-motion) * 0.58) var(--ease-settle, ease-in) forwards,
+    sdBarFadeOut calc(var(--sd-motion) * 0.46) ease-in forwards;
+}
+
+.toolbar[data-placement="left"][data-leaving][data-motion-out="rise"] {
+  animation-name: sdBarFallLeft, sdBarFadeOut;
+}
+
+.toolbar[data-placement="right"][data-leaving][data-motion-out="rise"] {
+  animation-name: sdBarFallRight, sdBarFadeOut;
+}
+
+/*
+ * `none` still has to animate, or it never ends.
+ *
+ * The bar is unmounted by its own `animationend`, so a preset that skips the
+ * animation entirely would leave it on screen for good. A single frame at zero
+ * opacity fires the event and reads as instant.
+ */
+.toolbar[data-leaving][data-motion-out="none"] {
+  animation: sdBarFadeOut 1ms linear forwards;
+}
+
+/* Nothing on the way in, and nothing to wait for. */
+.toolbar[data-motion-in="none"] {
+  animation: none;
+}
+
+/*
+ * Placement is an edge, a distance from it, and where along it the bar
+ * sits.
+ */
+.toolbar {
+  --sd-inset: 1.25rem;
+  --sd-room: calc(100% - var(--sd-inset) * 2);
+}
+
+.toolbar[data-placement="bottom"] {
+  bottom: var(--sd-inset);
+  max-width: var(--sd-room);
+}
+
+.toolbar[data-placement="bottom"][data-align="center"] {
+  left: 50%;
+  translate: -50% 0;
+}
+
+.toolbar[data-placement="bottom"][data-align="start"] {
+  left: var(--sd-inset);
+}
+
+.toolbar[data-placement="bottom"][data-align="end"] {
+  right: var(--sd-inset);
+}
+
+.toolbar[data-placement="left"] {
+  left: var(--sd-inset);
+  max-height: var(--sd-room);
+}
+
+.toolbar[data-placement="right"] {
+  right: var(--sd-inset);
+  max-height: var(--sd-room);
+}
+
+.toolbar[data-placement="left"][data-align="center"],
+.toolbar[data-placement="right"][data-align="center"] {
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.toolbar[data-placement="left"][data-align="start"],
+.toolbar[data-placement="right"][data-align="start"] {
+  top: var(--sd-inset);
+}
+
+.toolbar[data-placement="left"][data-align="end"],
+.toolbar[data-placement="right"][data-align="end"] {
+  bottom: var(--sd-inset);
+}
+
+/*
+ * `transform`, not `translate`.
+ *
+ * A centred bar is already using the `translate` property to pull itself back
+ * by half its width, and the two are separate properties that compose — so the
+ * travel can be animated here without having to know or restate the centring.
+ */
+@keyframes sdBarRise {
+  from {
+    transform: translateY(13px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sdBarRiseLeft {
+  from {
+    transform: translateX(-13px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sdBarRiseRight {
+  from {
+    transform: translateX(13px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sdBarFall {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(10px);
+  }
+}
+
+@keyframes sdBarFallLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-10px);
+  }
+}
+
+@keyframes sdBarFallRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(10px);
+  }
+}
+
+@keyframes sdBarFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sdBarFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Movement is the flourish; the bar still has to come and go. */
+@media (prefers-reduced-motion: reduce) {
+  .toolbar[data-motion-in="rise"],
+  .toolbar[data-leaving][data-motion-out="rise"] {
+    animation-name: sdBarFade;
+    animation-duration: 120ms;
+    animation-timing-function: linear;
+  }
+  .toolbar[data-leaving][data-motion-out="rise"] {
+    animation-name: sdBarFadeOut;
+  }
+}
+
+/* ------------------------------------------------------------ draggable */
+
+/* Picked up rather than dragged. */
+/* No grab cursor until it's actually grabbed. */
+.toolbar[data-draggable] {
+  transition:
+    rotate 260ms var(--ease-snappy),
+    scale 260ms var(--ease-snappy),
+    /* The lift and its shadow are one movement. */
+    filter 260ms var(--ease-snappy);
+}
+
+.toolbar[data-draggable]:active,
+.toolbar[data-held] {
+  cursor: grabbing;
+}
+
+.toolbar[data-held] {
+  rotate: -1.4deg;
+  scale: 1.035;
+  /* Lifted a little further off the surface while it's in the air. The bar
+     already carries its own shadow, so this only has to add to it — matched to
+     the lift it actually has, it reads as a drop shadow stuck to the element. */
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.09));
+  /* No easing on the position: it follows the pointer exactly, or it lags
+     behind the hand and feels like it's being towed. */
+  transition:
+    rotate 220ms var(--ease-snappy),
+    scale 220ms var(--ease-snappy),
+    filter 220ms var(--ease-snappy);
+}
+
+/* The tools inside must not intercept the grab. */
+.toolbar[data-held] * {
+  cursor: grabbing;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolbar[data-draggable],
+  .toolbar[data-held] {
+    rotate: none;
+    scale: 1;
+    transition: none;
+  }
+}

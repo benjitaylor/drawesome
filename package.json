@@ -4,11 +4,20 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter drawesome-studio dev",
-    "build": "pnpm --filter drawesome build && pnpm --filter drawesome-studio build",
-    "build:packages": "pnpm --filter drawesome build",
-    "typecheck": "pnpm -r typecheck"
+    "build": "pnpm --filter drawesome build && pnpm --filter draw-svelte build && pnpm --filter drawesome-studio build && pnpm --filter draw-svelte-studio build",
+    "build:packages": "pnpm --filter drawesome build && pnpm --filter draw-svelte build",
+    "typecheck": "pnpm -r typecheck",
+    "dev:svelte": "pnpm --filter draw-svelte-studio dev",
+    "test": "node --test tests/source-parity.test.mjs",
+    "test:e2e": "playwright test",
+    "test:package": "publint packages/draw-svelte && node tests/package-consumer.mjs",
+    "check": "pnpm typecheck && pnpm build && pnpm test && pnpm test:package && pnpm test:e2e"
   },
   "devDependencies": {
-    "typescript": "^5.7.0"
-  }
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "publint": "^0.3.24",
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "pnpm@12.3.4"
 }

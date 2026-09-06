@@ -1,0 +1,619 @@
+/* Contents of the morphing bar. The bar itself is MorphBar.module.css. */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 100%;
+}
+
+/* Round controls sit centred in the bar rather than seated at the bottom like
+   the pens, so they need lifting off the lower edge. */
+.seated {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-bottom: 0;
+  flex: none;
+}
+
+.round {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--ink-soft);
+  background: transparent;
+  transition:
+    background-color 160ms var(--ease-smooth),
+    color 160ms var(--ease-smooth),
+    transform 140ms var(--ease-smooth),
+    opacity 200ms var(--ease-smooth);
+}
+
+
+
+.round:active:not(:disabled) {
+  transform: scale(0.9);
+}
+.round:disabled {
+  opacity: 0.28;
+}
+
+
+
+.divider {
+  flex: none;
+  width: 1px;
+  height: 22px;
+  align-self: center;
+  background: var(--hairline);
+  /* A hairline carries no optical weight of its own, so it needs more air
+     around it than a control of the same width would. */
+  margin: 0 0.625rem;
+}
+
+/* ------------------------------------------------------------------ pens */
+
+.tool {
+  position: relative;
+  flex: none;
+  display: block;
+  width: 34px;
+  /* Pushes the lower barrel past the bar's edge so each pen reads as standing
+     in a slot. Tuned so the pens' visual mass centres on the bar — hanging
+     them lower made the round icons alongside look like they were riding high. */
+  margin-bottom: -20px;
+  transform: translateY(6px);
+  /* The shadow rides the same curve as the lift it belongs to. Left on
+     --ease-smooth it didn't follow the overshoot, so the pen came off the bar
+     and its shadow stayed behind. */
+  transition:
+    transform 380ms var(--ease-snappy),
+    filter 380ms var(--ease-snappy);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
+}
+
+
+
+.tool[data-active] {
+  transform: translateY(-12px);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.18));
+}
+
+/* --------------------------------------------------------------- colour */
+
+.wheel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #ff383c,
+    #ff8d28,
+    #ffcc00,
+    #34c759,
+    #00c3d0,
+    #0088ff,
+    #6155f5,
+    #d6336c,
+    #ff383c
+  );
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.wheelInk {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  /* A wider gap between the ink and the spectrum around it. At two pixels the
+     ring read as a seam between two things touching; at three it reads as the
+     ink sitting in a well, and the swatch stops looking crowded. */
+  box-shadow:
+    0 0 0 3px var(--bar-from),
+    0 0 0 3.5px var(--hairline);
+  transition: background-color 240ms var(--ease-smooth);
+}
+
+.brushDot {
+  border-radius: 50%;
+  transition:
+    width 260ms var(--ease-smooth),
+    height 260ms var(--ease-smooth),
+    background-color 240ms var(--ease-smooth),
+    opacity 240ms var(--ease-smooth);
+}
+
+/*
+ * Room at the end when nothing follows the swatches.
+ *
+ * The custom picker and its divider used to hold the last swatch off the
+ * pill's curve. Without them the row ends on a square chip pressed against a
+ * round end, which reads as cramped in a way the round picker never did.
+ *
+ * The bar only. A rail's column is centred, so padding down one side doesn't
+ * add room at the end, it just pushes every control off the centre line.
+ */
+.row[data-open-end] {
+  padding-right: 0.75rem;
+}
+
+/*
+ * A rail needs its sides left alone: padding down one side of a centred column
+ * shifts every control off the centre line rather than adding room at the end.
+ */
+.vertical .row[data-open-end] {
+  padding-right: 0.5rem;
+}
+
+/*
+ * Room at the foot of a rail's palette, whatever ends it.
+ *
+ * The pill's bottom curve pinches in over the last 16px or so, and the column
+ * runs right into it — the last swatch, or the custom picker when it's there.
+ * Unconditional, because both of them need the same clearance.
+ */
+.vertical .row.inkRow {
+  /* Both class names, so this outranks the `padding: 0 0.5rem` shorthand the
+     rail sets on every row further down — at equal weight that shorthand wins
+     on order and resets this to nothing. */
+  padding-bottom: 0.75rem;
+}
+
+
+.swatches {
+  display: flex;
+  align-items: center;
+  gap: 0.3125rem;
+  flex: none;
+}
+
+.chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  flex: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  /* A plain ease, not a springy one: a dozen swatches overshooting together
+     looks jittery rather than lively. */
+  transition:
+    transform 200ms var(--ease-smooth),
+    box-shadow 200ms var(--ease-smooth);
+}
+
+
+
+/* Selected lifts and carries a tick. Modest, and it never turns the swatch
+   into a donut or fights a dark colour with a dark outline. */
+.chip[data-active] {
+  transform: scale(1.08) translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.14),
+    0 3px 8px rgba(0, 0, 0, 0.24);
+}
+
+.tick {
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    opacity 140ms ease-out,
+    transform 240ms var(--ease-snappy);
+  pointer-events: none;
+}
+
+.chip[data-active] .tick {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.custom {
+  position: relative;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  transition: transform 220ms var(--ease-snappy);
+}
+
+
+
+.custom span {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 4px var(--bar-from);
+  background-image: conic-gradient(
+    #ff383c,
+    #ffcc00,
+    #34c759,
+    #0088ff,
+    #6155f5,
+    #ff383c
+  );
+}
+
+@media (pointer: coarse) {
+  .round {
+    width: 42px;
+    height: 42px;
+  }
+  .tool {
+    width: 38px;
+  }
+  .chip,
+  .custom {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* Current colour, alongside the hex field: a swatch, sized and shaped like
+   the ones on the previous panel so the two read as the same control. */
+.preview {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.14),
+    0 1px 3px rgba(0, 0, 0, 0.16);
+  transition: background-color 120ms linear;
+}
+
+/* A round control carries roughly 8px of its own optical padding, so at the
+   ends of the bar it sits slightly proud of the box padding. Without this the
+   left inset reads as noticeably deeper than the right, where content ends
+   square against the curve. */
+.row > .round:first-child,
+.seated:first-child {
+  margin-left: -7px;
+}
+
+.row > .round:last-child,
+.seated:last-child {
+  margin-right: -7px;
+}
+
+/*
+ * Not on a rail. Those two pull the end controls out toward the bar's curved
+ * ends, which is the right instinct along the bar's length and the wrong axis
+ * entirely once it's on its side — a negative margin on one side of a centred
+ * column just shifts everything in it a few pixels off the centre line.
+ */
+.vertical .row > .round:first-child,
+.vertical .seated:first-child,
+.vertical .row > .round:last-child,
+.vertical .seated:last-child {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* The selected tool standing in the collapsed disc — full tip, base clipped
+   by the disc, the same way the pens sit in the open tray. */
+.peek {
+  display: block;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.16));
+}
+
+/* On a rail the pen stays turned. */
+/* Centred by hand, out of the flow. */
+.vertical .peek {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+  /* Out of the flow at `left: 50%`, the box shrinks to the space left beside
+     it — and a host page with `svg { max-width: 100% }` in its reset then
+     squeezes the tool to fit. What the disc shows shouldn't depend on the page
+     it's dropped into. */
+  width: max-content;
+}
+
+/*
+ * A rail's disc needs a smaller tool than a bar's.
+ *
+ * The icon is drawn at 42 because the bar's disc is the bar scaled to two
+ * thirds, which lands it at the 28 it reads as. A rail only scales to 0.848,
+ * so the same 42 arrives about a quarter too big. 33 lands it back at 28.
+ */
+.vertical .peek svg {
+  width: 33px;
+  height: auto;
+}
+
+/*
+ * The active tool's position, sat back a touch.
+ *
+ * The tray lets a selected pen jut toward the canvas because there's a canvas
+ * right there for it to point into. A disc has an edge instead, so it sits
+ * back a touch to keep some air on that side.
+ *
+ * As a percentage, not pixels: a `translateY` percentage resolves against the
+ * element's own height, and the looks don't draw the same pen. Classic is
+ * 42x123, studio 42x97 — so a fixed offset that seats one of them correctly
+ * pushes the other through the side of the disc.
+ */
+.left .peek {
+  transform: translate(-50%, -50%) rotate(90deg) translateY(21%);
+  filter: drop-shadow(1px 0 2px rgba(0, 0, 0, 0.16));
+}
+
+.right .peek {
+  transform: translate(-50%, -50%) rotate(-90deg) translateY(21%);
+  filter: drop-shadow(-1px 0 2px rgba(0, 0, 0, 0.16));
+}
+
+/* ------------------------------------------------------- vertical rails */
+
+/* The pens rotate a quarter turn so their tips point into the canvas, and are
+   given a square box to sit in — the upright margin trick that seats them in
+   the bottom bar doesn't survive a rotation.
+   The button's own lift is cancelled here: left as-is, selecting a tool moved
+   it *up* the rail rather than out toward the canvas, which is the wrong axis
+   entirely once the bar is on its side. */
+/*
+ * Shadows ride on the pen in a rail, never on the button.
+ *
+ * It's the pen inside that moves, so the shadow has to move with it — and
+ * left on the button as well the two stack, which is why the selected tool
+ * came out darker here than the same tool does in the bar.
+ *
+ * The values are the bar's own, written pre-rotation: a filter applies in the
+ * element's coordinate space and the quarter turn carries it along, so
+ * `0 4px` would fall sideways. rotate(90deg) maps (x, y) to (-y, x), so
+ * (4, 0) lands at (0, 4) — straight down, exactly as in the bar.
+ */
+.vertical .tool,
+.vertical .tool:hover,
+.vertical .tool[data-active] {
+  filter: none;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  transform: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.vertical .tool svg {
+  transform-origin: center;
+  transition:
+    transform 380ms var(--ease-snappy),
+    filter 380ms var(--ease-snappy);
+}
+
+/*
+ * Movement is along the rail's outward axis: selecting a pen pushes it
+ * toward the canvas, the same gesture as a pen lifting out of the bottom
+ * tray.
+ */
+.left .tool svg {
+  transform: rotate(90deg) translateY(30px);
+  filter: drop-shadow(1px 0 1px rgba(0, 0, 0, 0.12));
+}
+
+
+
+.left .tool[data-active] svg {
+  /* The same 18px the bottom bar lifts by, so the two placements share one
+     gesture. Any further and the pen leaves the rail altogether and reads as
+     having fallen out of it rather than been picked from it. */
+  transform: rotate(90deg) translateY(14px);
+  filter: drop-shadow(4px 0 6px rgba(0, 0, 0, 0.18));
+}
+
+.right .tool svg {
+  transform: rotate(-90deg) translateY(30px);
+  filter: drop-shadow(-1px 0 1px rgba(0, 0, 0, 0.12));
+}
+
+
+
+.right .tool[data-active] svg {
+  transform: rotate(-90deg) translateY(14px);
+  filter: drop-shadow(-4px 0 6px rgba(0, 0, 0, 0.18));
+}
+
+.vertical .divider {
+  width: 22px;
+  height: 1px;
+  margin: 0.375rem 0;
+}
+
+.vertical .seated {
+  height: auto;
+  margin: 0;
+}
+
+/* Rows inside a vertical rail stack, and the swatches become a grid rather
+   than a strip that would run off the screen. */
+.vertical .row {
+  flex-direction: column;
+  height: auto;
+  gap: 0.625rem;
+}
+
+/* One column, not two. */
+.vertical .swatches {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+}
+
+/* The rail widens for the panels that genuinely need it, rather than
+   squeezing their contents into the pens' width. */
+.vertical .row {
+  padding: 0 0.5rem;
+}
+
+/* A hex code you can type into. */
+.hex {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  /* No gap: the hash belongs to the code, not beside it. */
+  gap: 0;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 8px;
+  /* Barely there. A field this small only has to read as typable, and a hard
+     fill plus a border next to a row of soft controls looks stamped on. */
+  background: color-mix(in srgb, var(--sunk) 42%, transparent);
+  color: var(--ink-2);
+  /* Proportional, not monospace: six characters that never move don't need a
+     typewriter face, and the UI font keeps it in the same voice as the rest of
+     the bar. Tabular figures stop the digits shuffling as they're typed. */
+  /* The shorthand can't take `inherit` for the family, so it was silently
+     dropping the whole declaration and falling back to the UA default — which
+     is what made this too big, and wide enough to clip. */
+  font-family: inherit;
+  font-size: 12px;
+  /* Light enough to read as a field rather than as a label. */
+  font-weight: 450;
+  line-height: 1;
+  /* Tabular figures so the six characters hold their places as they're typed
+     rather than shuffling the field's contents on every keystroke. */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  transition: background 180ms var(--ease-snappy);
+}
+
+.hex:focus-within {
+  background: color-mix(in srgb, var(--sunk) 70%, transparent);
+}
+
+/* The focus ring, drawn as a pseudo-element so it can animate. */
+.hex::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent);
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 160ms var(--ease-snappy),
+    transform 220ms var(--ease-snappy);
+  pointer-events: none;
+}
+
+.hex:focus-within::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hex input {
+  /* Exactly six characters. `ch` is measured on `0`, and the letters A–F run a
+     little wider in a proportional face, so the six are given a shade over six
+     `ch` between them. Newer browsers size it from the content directly. */
+  /* Exactly six characters, left-aligned hard against the hash. Centring
+     inside a field wider than its contents is what put a gap after the # —
+     the spare width was being split across both sides of the code. */
+  width: 6.35ch;
+  min-width: 6.35ch;
+  text-align: left;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: color-mix(in srgb, var(--ink-1) 82%, transparent);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.hex input::selection {
+  background: color-mix(in srgb, var(--accent, #4263eb) 28%, transparent);
+}
+
+/* A rim on anything showing the current ink. */
+.brushDot,
+.preview {
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.22);
+}
+
+:global(.sd[data-theme="dark"]) .brushDot,
+:global(.sd[data-theme="dark"]) .preview {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+}
+
+/* The ring that seats the ink in the spectrum. */
+.wheelInk {
+  box-shadow:
+    0 0 0 3px var(--bar-from),
+    0 0 0 3.5px var(--hairline);
+}
+
+/* Extra room at the trailing edge of the slider panels. */
+.tail {
+  padding-right: 7px;
+}
+
+/*
+ * On a rail the trailing edge is the bottom one, so the breathing room moves
+ * there. The horizontal padding is deliberately left alone: zeroing one side
+ * of it and not the other leaves the row's content box lopsided, and every
+ * control centred inside it sits a few pixels off the rail's centre line.
+ */
+:global(.sd[data-placement="left"]) .tail,
+:global(.sd[data-placement="right"]) .tail {
+  padding-bottom: 7px;
+}
+
+/*
+ * Hover, only where there's a pointer that can hover.
+ *
+ * On a touch screen `:hover` latches onto whatever was tapped and stays there,
+ * so selecting a pen left it holding the hover position — visibly proud of the
+ * rail — until something else was touched.
+ */
+@media (hover: hover) {
+  .round:hover:not(:disabled) {
+    background: var(--sunk);
+    color: var(--ink);
+  }
+
+  .round[data-tone="danger"]:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--red) 12%, transparent);
+    color: var(--red);
+  }
+
+  .tool:not([data-active]):hover {
+    transform: translateY(-1px);
+  }
+
+  .chip:hover {
+    transform: scale(1.1);
+  }
+
+  .custom:hover {
+    transform: scale(1.14);
+  }
+
+  .left .tool:not([data-active]):hover svg {
+    transform: rotate(90deg) translateY(26px);
+  }
+
+  .right .tool:not([data-active]):hover svg {
+    transform: rotate(-90deg) translateY(26px);
+  }
+}

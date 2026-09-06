@@ -10,6 +10,8 @@
 
 **Drawesome** is a drawing toolbar for React. Seven pens that behave like pens, an eraser that takes away area rather than whole strokes, and SVG or PNG out. No dependencies beyond React.
 
+Using Svelte? The monorepo also includes the native [`draw-svelte`](packages/draw-svelte) port with the same tools, interface, defaults, and drawing engine.
+
 ## Install
 
 ```bash

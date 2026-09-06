@@ -1,0 +1,320 @@
+/*
+ * Design tokens, ported from benji.org (light surfaces, quiet type, soft
+ * layered shadows) and agentation (dark floating pill, 34px round controls,
+ * tinted active states). This app is Vite + CSS Modules rather than Next +
+ * SCSS Modules, so the language is reproduced here rather than imported.
+ */
+
+.sd {
+  /* -------------------------------------------------------------- type */
+  --font:
+    "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  /* ---------------------------------------------------------- surfaces */
+  /* The desk: a touch warmer and darker than the sheet, so paper reads as
+     paper rather than as the background. */
+  --workspace: #edebe7;
+
+  --ink: #111111;
+  /* Opaque, deliberately. An icon drawn in a translucent colour composites
+     against itself everywhere two of its strokes cross, so every join shows
+     as a darker patch — the icon looks like tracing paper. This is the same
+     grey that rgba(0,0,0,0.45) resolved to over the bar. */
+  --ink-soft: #8a8a8e;
+  --ink-faint: rgba(0, 0, 0, 0.28);
+  --hairline: rgba(0, 0, 0, 0.1);
+
+  /* ------------------------------------------------- dark floating pill */
+  --pill-bg: #1a1a1a;
+
+  /* --------------------------------------------------- light overlay */
+
+  /* The sheet sits on the desk; same shadow ramp, a little deeper. */
+
+  /* ------------------------------------------------------------ accent */
+  --accent: #0088ff;
+  --red: #ff383c;
+
+  /* ------------------------------------------------------------ motion */
+  --ease-smooth: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-snappy: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+
+  /* ------------------------------------------------- tool illustrations */
+  /* The cylinder ramp for a pen barrel, edge → highlight → edge. */
+  --tool-1: #c6c4bf;
+  --tool-2: #eeedea;
+  --tool-3: #ffffff;
+  --tool-4: #f3f2ef;
+  --tool-5: #dedcd7;
+  --tool-6: #c4c2bd;
+  /* Ferrules and eraser collars */
+  --metal-1: #6f6d68;
+  --metal-2: #bab8b3;
+  --metal-3: #e4e2de;
+  --metal-4: #a6a49f;
+  --metal-5: #6a6863;
+  /*
+     The studio ramp. Same barrel, lit properly.
+
+     Classic runs edge → highlight → edge, which is a cylinder as far as it
+     goes: it gets darker as it turns away from you and stops. What it misses
+     is that a pen lies on a surface, and the surface throws light back up onto
+     its far side. So the darkest point is not the far edge, it is about three
+     quarters across, and past it the barrel comes *back up* into a soft band
+     before it ends. That reversal is what tells the eye the section is round
+     rather than merely shaded, and it is the whole difference here.
+
+     It also runs a little darker overall than classic, because a highlight
+     only reads as one if the body has somewhere to be brighter than.
+
+     The offsets matter as much as the colours. The gradient spans the whole
+     30-unit icon but a barrel only occupies x 5–25, so a stop at 0.9 lands
+     five units past the edge of the thing it is shading and never appears.
+     These are placed in barrel space: 0.167 is its left edge, 0.833 its
+     right, and the highlight at 0.33 sits a quarter of the way across.
+  */
+  /* Metal wants far more range than plastic; that contrast is what reads as
+     metal rather than as grey paint. */
+  --smetal-1: #7d7a74;
+  --smetal-2: #cbc7c0;
+  --smetal-3: #fdfdfc;
+  --smetal-4: #e2dfd9;
+  --smetal-5: #b8b4ad;
+  --smetal-6: #8d8a84;
+  --smetal-7: #6e6b66;
+  --smetal-8: #a5a29b;
+  /*
+     The pencil's three visible faces.
+
+     Not a cylinder with flats drawn over it — that fights itself, because the
+     gradient says the surface curves and the flats say it doesn't. A hexagonal
+     barrel is three flat faces meeting at hard edges, so each face is nearly
+     even and the tone *steps* where they meet. The step is the whole cue.
+  */
+  --pfacet-1: #ece8e2;
+  --pfacet-2: #f8f6f2;
+  --pfacet-3: #fdfcfa;
+  --pfacet-4: #f8f5f1;
+  --pfacet-5: #ebe7e0;
+  --pfacet-6: #dad5cd;
+  --studio-1: #dcd8d2;
+  --studio-2: #f6f4f1;
+  --studio-3: #ffffff;
+  --studio-4: #fdfcfb;
+  --studio-5: #f8f6f3;
+  --studio-6: #eceae5;
+  --studio-7: #dcd8d1;
+  --studio-8: #e6e2dc;
+  --tool-collar: #413e3a;
+
+  /* --------------------------------------------------------- the bar */
+  --bar-from: #fbfaf9;
+  --bar-to: #f1efec;
+  --bar-edge: rgba(0, 0, 0, 0.07);
+  --bar-sheen: rgba(255, 255, 255, 0.9);
+  --sunk: rgba(0, 0, 0, 0.055);
+  --raised: #ffffff;
+
+  /* -------------------------------------------------------------- form */
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+  .sd {
+    --accent: color(display-p3 0 0.53 1);
+    --red: color(display-p3 1 0.22 0.24);
+  }
+}
+
+/*
+ * Dark mode. Same token names throughout, so no component needs to know which
+ * theme it is in — and an explicit `data-theme` always beats the media query,
+ * so a host app can force one regardless of the OS setting.
+ */
+.sd[data-theme="dark"],
+.sd[data-theme="auto"] {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sd[data-theme="auto"] {
+    /* A considered dark set rather than inverted greys: the workspace is the
+     darkest layer, the bar sits above it, and controls above that. Everything
+     carries a touch of warmth so it doesn't read as blue-black. */
+    --workspace: #131315;
+    --ink: #f4f3f1;
+    /* Brighter than its light-mode counterpart: the same nominal contrast reads
+     weaker against a dark surface, and these are line icons with little mass. */
+    --ink-soft: #b4b4bb;
+    --ink-faint: rgba(255, 255, 255, 0.45);
+    --hairline: rgba(255, 255, 255, 0.16);
+
+    /* The bar is lifted off the workspace, with a lit top edge. */
+    --bar-from: #35353b;
+    --bar-to: #26262b;
+    --bar-edge: rgba(0, 0, 0, 0.6);
+    --bar-sheen: rgba(255, 255, 255, 0.11);
+    --sunk: rgba(0, 0, 0, 0.34);
+    --raised: #e9e8e6;
+
+    /*
+     Pens go dark too — white barrels on a dark bar glare and flatten the whole
+     row into a set of bright slabs. Darker than the bar they stand in, and with
+     the highlight kept narrow: a broad one turns each barrel into a grey slab,
+     which is the same problem in a lower key.
+  */
+    --tool-1: #232327;
+    --tool-2: #34343a;
+    --tool-3: #47474f;
+    --tool-4: #3a3a41;
+    --tool-5: #2a2a2f;
+    --tool-6: #1f1f23;
+    --metal-1: #34343a;
+    --metal-2: #63636d;
+    --metal-3: #83838e;
+    --metal-4: #51515a;
+    --metal-5: #2e2e34;
+    --smetal-1: #2b2b30;
+    --smetal-2: #6e6e78;
+    --smetal-3: #a9a9b4;
+    --smetal-4: #85858f;
+    --smetal-5: #63636d;
+    --smetal-6: #45454d;
+    --smetal-7: #2e2e34;
+    --smetal-8: #56565f;
+    --pfacet-1: #32323a;
+    --pfacet-2: #3f3f48;
+    --pfacet-3: #45454e;
+    --pfacet-4: #414149;
+    --pfacet-5: #37373f;
+    --pfacet-6: #2b2b32;
+    --studio-1: #202024;
+    --studio-2: #45454e;
+    --studio-3: #5a5a65;
+    --studio-4: #4e4e57;
+    --studio-5: #43434b;
+    --studio-6: #33333a;
+    --studio-7: #26262b;
+    --studio-8: #35353c;
+    /* Darker than any barrel, so the collar still separates tip from body. */
+    --tool-collar: #101013;
+
+    --accent: #3d9bff;
+  }
+}
+
+.sd[data-theme="dark"] {
+  /* A considered dark set rather than inverted greys: the workspace is the
+     darkest layer, the bar sits above it, and controls above that. Everything
+     carries a touch of warmth so it doesn't read as blue-black. */
+  --workspace: #131315;
+  --ink: #f4f3f1;
+  /* Brighter than its light-mode counterpart: the same nominal contrast reads
+     weaker against a dark surface, and these are line icons with little mass. */
+  --ink-soft: #b4b4bb;
+  --ink-faint: rgba(255, 255, 255, 0.45);
+  --hairline: rgba(255, 255, 255, 0.16);
+
+  /* The bar is lifted off the workspace, with a lit top edge. */
+  --bar-from: #35353b;
+  --bar-to: #26262b;
+  --bar-edge: rgba(0, 0, 0, 0.6);
+  --bar-sheen: rgba(255, 255, 255, 0.11);
+  --sunk: rgba(0, 0, 0, 0.34);
+  --raised: #e9e8e6;
+
+  /*
+     Pens go dark too — white barrels on a dark bar glare and flatten the whole
+     row into a set of bright slabs. Darker than the bar they stand in, and with
+     the highlight kept narrow: a broad one turns each barrel into a grey slab,
+     which is the same problem in a lower key.
+  */
+  --tool-1: #232327;
+  --tool-2: #34343a;
+  --tool-3: #47474f;
+  --tool-4: #3a3a41;
+  --tool-5: #2a2a2f;
+  --tool-6: #1f1f23;
+  --metal-1: #34343a;
+  --metal-2: #63636d;
+  --metal-3: #83838e;
+  --metal-4: #51515a;
+  --metal-5: #2e2e34;
+  --smetal-1: #2b2b30;
+  --smetal-2: #6e6e78;
+  --smetal-3: #a9a9b4;
+  --smetal-4: #85858f;
+  --smetal-5: #63636d;
+  --smetal-6: #45454d;
+  --smetal-7: #2e2e34;
+  --smetal-8: #56565f;
+  --pfacet-1: #32323a;
+  --pfacet-2: #3f3f48;
+  --pfacet-3: #45454e;
+  --pfacet-4: #414149;
+  --pfacet-5: #37373f;
+  --pfacet-6: #2b2b32;
+  --studio-1: #202024;
+  --studio-2: #45454e;
+  --studio-3: #5a5a65;
+  --studio-4: #4e4e57;
+  --studio-5: #43434b;
+  --studio-6: #33333a;
+  --studio-7: #26262b;
+  --studio-8: #35353c;
+  /* Darker than any barrel, so the collar still separates tip from body. */
+  --tool-collar: #101013;
+
+  --accent: #3d9bff;
+}
+
+/* Reset only inside our own tree — a drawing widget must not restyle its host. */
+:where(.sd),
+:where(.sd) *,
+:where(.sd) *::before,
+:where(.sd) *::after {
+  box-sizing: border-box;
+}
+
+/* :where() zeroes the specificity so component classes always win. Without it
+   `.sd button { margin: 0 }` (0,1,1) silently beats `.tool` (0,1,0) and quietly
+   undoes any margin a component sets. */
+:where(.sd) :where(button) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(.sd) :where(button:disabled) {
+  cursor: not-allowed;
+}
+
+.sd {
+  font-family: var(--font);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* How solid the chrome is meant to look — a depth dial, not a shadow one. */
+.sd[data-depth="flat"] {
+  --bar-lift: 0;
+  /* No gradient down the face and no lit top edge: a flat fill. */
+  --bar-to: var(--bar-from);
+  --bar-sheen: transparent;
+}
+.sd[data-depth="soft"] {
+  --bar-lift: 0.5;
+}
+.sd[data-depth="regular"] {
+  --bar-lift: 1;
+}
+.sd[data-depth="strong"] {
+  --bar-lift: 1.28;
+}

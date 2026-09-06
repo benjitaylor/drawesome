@@ -1,0 +1,25 @@
+.icon {
+  overflow: visible;
+}
+
+.lid {
+  /* Hinged at the left end of the bar, so it swings up and off. */
+  transform-origin: 3.6px 5.6px;
+  transform-box: view-box;
+  transition: transform 360ms var(--ease-snappy);
+}
+
+/* Driven from the button so the whole control is the target, not the lid. */
+:global(button:hover:not(:disabled)) .lid {
+  transform: rotate(-24deg) translate(0.6px, -1.1px);
+}
+
+:global(button:active:not(:disabled)) .lid {
+  transform: rotate(-12deg) translate(0.3px, -0.5px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lid {
+    transition: none;
+  }
+}

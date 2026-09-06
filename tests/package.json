@@ -1,0 +1,19 @@
+{
+  "name": "drawesome-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "preview": "vite preview --host 127.0.0.1 --port 4175 --strictPort"
+  },
+  "devDependencies": {
+    "draw-svelte": "workspace:*",
+    "drawesome": "workspace:*",
+    "svelte": "^5.57.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "vite": "^8.2.2",
+    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "@vitejs/plugin-react": "^6.1.1"
+  }
+}
