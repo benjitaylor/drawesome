@@ -1,6 +1,6 @@
 {
   "name": "drawesome",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A drawing toolbar for React. Seven pens, an eraser, SVG and PNG export, no dependencies.",
   "keywords": [
     "react",
