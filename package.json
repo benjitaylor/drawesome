@@ -6,9 +6,11 @@
     "dev": "pnpm --filter drawesome-studio dev",
     "build": "pnpm --filter drawesome build && pnpm --filter drawesome-studio build",
     "build:packages": "pnpm --filter drawesome build",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "typescript": "^5.7.0"
   }
 }

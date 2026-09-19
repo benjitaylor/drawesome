@@ -23,6 +23,8 @@
   overflow: hidden;
   /* A longer, flatter tail than `--ease-smooth`. */
   --ease-settle: cubic-bezier(0.22, 0.9, 0.16, 1);
+  /* Keep the same origin when expanding, including after an interrupted fold. */
+  transform-origin: var(--fold-origin, center);
 
   transition:
     width 520ms var(--ease-settle),
@@ -30,7 +32,8 @@
     border-radius 440ms var(--ease-settle),
     translate 540ms var(--ease-settle),
     scale 540ms var(--ease-settle),
-    transform 540ms var(--ease-settle);
+    transform 540ms var(--ease-settle),
+    transform-origin 540ms var(--ease-settle);
 }
 
 /* Collapsed: the same object, shrunk to a disc and parked in the corner.
@@ -43,14 +46,6 @@
      circle is already a circle by the time this takes effect, so it only ever
      gets smaller, never squashed. 56/84. */
   scale: 0.667;
-  /*
-     Shrunk toward whichever edge the bar is anchored by, not toward its middle.
-     A centre-scaled box pulls both its edges inward, so a bar pinned to the
-     right of the screen drifts away from that edge as it closes and drifts
-     back as it settles — a lurch of about thirty pixels, for no reason the eye
-     can account for.
-  */
-  transform-origin: var(--fold-origin, center);
   min-width: 0;
   overflow: hidden;
   clip-path: none;

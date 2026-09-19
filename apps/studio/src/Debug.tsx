@@ -20,6 +20,7 @@ export type DebugState = {
   depth: "flat" | "soft" | "regular" | "strong";
   settings: "bar" | "tool";
   align: "start" | "center" | "end";
+  minimizeAlign: "auto" | "start" | "end";
   look: "classic" | "studio";
   gauge: boolean;
   shortcuts: boolean;
@@ -49,6 +50,7 @@ export const defaults: DebugState = {
   depth: "regular",
   settings: "bar",
   align: "center",
+  minimizeAlign: "auto",
   look: "classic",
   gauge: false,
   shortcuts: true,
@@ -77,6 +79,7 @@ const DEPTHS = ["flat", "soft", "regular", "strong"] as const;
 const SETTINGS = ["bar", "tool"] as const;
 const LOOKS = ["classic", "studio"] as const;
 const ALIGNS = ["start", "center", "end"] as const;
+const MINIMIZE_ALIGNS = ["auto", "start", "end"] as const;
 const INKS: InkMode[] = ["auto", "shared", "per-tool"];
 const CONTROLS = [
   "color",
@@ -190,6 +193,18 @@ export function Debug({
             key={v}
             on={value.align === v}
             onClick={() => set("align", v)}
+          >
+            {v}
+          </Toggle>
+        ))}
+      </Row>
+
+      <Row label="Minimize to">
+        {MINIMIZE_ALIGNS.map((v) => (
+          <Toggle
+            key={v}
+            on={value.minimizeAlign === v}
+            onClick={() => set("minimizeAlign", v)}
           >
             {v}
           </Toggle>
