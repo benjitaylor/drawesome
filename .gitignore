@@ -13,3 +13,5 @@ packages/draw/LICENSE
 packages/draw/logo.svg
 packages/draw/logo-dark.svg
 .vercel
+playwright-report
+test-results

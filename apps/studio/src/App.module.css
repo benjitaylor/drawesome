@@ -2,3 +2,43 @@
   width: 100%;
   height: 100%;
 }
+
+.settingsToggle {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 201;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #ededee;
+  color: #333;
+  font: 500 12px/1.25 system-ui, sans-serif;
+  cursor: pointer;
+  transition: background-color 140ms, color 140ms;
+}
+
+.settingsToggle[aria-expanded="true"] {
+  background: #333335;
+  color: white;
+}
+
+.settings {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 140ms, visibility 0s;
+}
+
+.settings[data-hidden] {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms, visibility 0s 140ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settingsToggle, .settings, .settings[data-hidden] {
+    transition: none;
+  }
+}

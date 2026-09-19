@@ -6,6 +6,7 @@ import css from "./App.module.css";
 /** Demo harness. The <Draw /> line is all a consumer writes. */
 export default function App() {
   const [debug, setDebug] = useState<DebugState>(defaults);
+  const [showDebug, setShowDebug] = useState(true);
   const draw = useRef<DrawHandle>(null);
 
   return (
@@ -24,6 +25,7 @@ export default function App() {
         controls={debug.controls}
         settings={debug.settings}
         align={debug.align}
+        minimizeAlign={debug.minimizeAlign === "auto" ? undefined : debug.minimizeAlign}
         look={debug.look}
         gauge={debug.gauge}
         shortcuts={debug.shortcuts}
@@ -38,7 +40,23 @@ export default function App() {
               : "#ffffff"
         }
       />
-      <Debug value={debug} onChange={setDebug} draw={draw} />
+      <button
+        type="button"
+        className={css.settingsToggle}
+        aria-expanded={showDebug}
+        aria-controls="studio-settings"
+        onClick={() => setShowDebug((shown) => !shown)}
+      >
+        Settings
+      </button>
+      <div
+        id="studio-settings"
+        className={css.settings}
+        data-hidden={!showDebug || undefined}
+        inert={!showDebug}
+      >
+        <Debug value={debug} onChange={setDebug} draw={draw} />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 .panel {
   position: fixed;
-  top: 1rem;
+  top: 3.25rem;
   left: 50%;
   translate: -50% 0;
   z-index: 200;
@@ -18,6 +18,8 @@
     system-ui,
     sans-serif;
   color: rgba(255, 255, 255, 0.55);
+  max-height: calc(100dvh - 4.25rem);
+  overflow-y: auto;
 }
 
 .tag {

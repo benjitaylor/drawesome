@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -112,8 +113,9 @@ export type DrawProps = {
   /**
    * Which end of that edge the bar folds into when it is minimised.
    *
-   * A centred bar has no nearer end and picks one. Name the other when the
-   * app keeps a control of its own in that corner.
+   * `start` is left for a bottom bar and top for a rail; `end` is right or
+   * bottom. Defaults to `align`, with a centred bar choosing `end`.
+   * A bar the user has dragged stays where they put it.
    */
   minimizeAlign?: "start" | "end";
   /** "auto" follows the OS; the others force it. */
@@ -567,63 +569,11 @@ export const Draw = forwardRef<DrawHandle, DrawProps>(function Draw(
     up into the corner, which is what it should have looked like all along.
   */
   const [fold, setFold] = useState(0);
-  const [foldOrigin, setFoldOrigin] = useState("center");
-
-  useEffect(() => {
-    if (!collapsed || pin) {
-      setFold(0);
-      return;
-    }
-    const el = root.current;
-    const bar = barEl.current;
-    if (!el || !bar) return;
-    const r = el.getBoundingClientRect();
-    const b = bar.getBoundingClientRect();
-    const horizontal = placement === "bottom";
-    const span = horizontal ? r.width : r.height;
-    const centre = horizontal
-      ? b.left + b.width / 2 - r.left
-      : b.top + b.height / 2 - r.top;
-    // A bar square in the middle has no nearer end, so it keeps the one it has
-    // always folded to — unless the host names the end itself.
-    const nearest = centre / span < 0.48 ? "start" : "end";
-    const dir = (minimizeAlign ?? nearest) === "start" ? -1 : 1;
-    /*
-     * Aimed at a point, not moved by a guessed distance.
-     *
-     * The disc should end up exactly as far off its edge as the open bar sits
-     * off it. Computed as an offset from the middle it lands close but not
-     * on, because the bar isn't always centred in the first place, and being
-     * a few pixels deeper into the corner than the inset is visible against a
-     * rounded frame.
-     */
-    /*
-     * Measured, not parsed.
-     *
-     * `--sd-inset` is a CSS length and can be anything: `1.25rem`, `4vw`, a
-     * calc. Read as a number it silently becomes 1.25, and the disc ends up
-     * against the edge. The distance the open bar already keeps from its own
-     * edge is the same distance, and it's in pixels by definition.
-     */
-    const gap = horizontal ? r.bottom - b.bottom : b.left - r.left;
-    /*
-     * Half the collapsed bar *before* it scales.
-     *
-     * A rail folds about its end rather than its middle, so that edge is the
-     * fixed point and the box still measures its full 66 when the translate is
-     * applied. Aiming with the scaled 56 leaves it a few pixels deeper into the
-     * corner than the open bar ever sits, which shows against a rounded frame.
-     */
-    const half = horizontal ? 28 : 33;
-    const target = dir < 0 ? gap + half : span - gap - half;
-    setFold(target - centre);
-    setFoldOrigin(
-      horizontal ? "center" : dir < 0 ? "center top" : "center bottom",
-    );
-
-    // Only when the collapse itself begins.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collapsed, minimizeAlign, placement, pin]);
+  const foldEnd = minimizeAlign ?? (align === "start" ? "start" : "end");
+  const foldOrigin =
+    placement === "bottom"
+      ? "center"
+      : foldEnd === "start" ? "center top" : "center bottom";
 
   /*
    * The bar has to outlive `chrome` going false, or there is nothing left to
@@ -647,6 +597,38 @@ export const Draw = forwardRef<DrawHandle, DrawProps>(function Draw(
       setLeaving(true);
     }
   }, [chrome, exitWith]);
+
+  useLayoutEffect(() => {
+    if (pin) {
+      setFold(0);
+      return;
+    }
+    const el = root.current;
+    const bar = barEl.current;
+    if (!el || !bar) return;
+    const horizontal = placement === "bottom";
+    const span = horizontal ? el.clientWidth : el.clientHeight;
+    // Read the resolved position, not the author's CSS length or the animated
+    // bounding box. This handles rem, percentages and calc(), and measures a
+    // right rail from the right edge even during its entrance animation.
+    const position = getComputedStyle(bar);
+    const gap = parseFloat(position[placement]);
+    // The anchor's centre AFTER shrinking. Using the open bar's centre sends
+    // start/end-aligned bars off the surface as their width or height changes.
+    const half = horizontal ? 42 : 33;
+    const centre = align === "start"
+      ? parseFloat(position[horizontal ? "left" : "top"]) + half
+      : align === "end"
+        ? span - parseFloat(position[horizontal ? "right" : "bottom"]) - half
+        : span / 2;
+    // Horizontal bars scale about their centre; rails scale about the named
+    // end, so their target uses the unscaled half-height (66 / 2).
+    const targetHalf = horizontal ? 28 : 33;
+    const target = foldEnd === "start"
+      ? gap + targetHalf
+      : span - gap - targetHalf;
+    setFold(target - centre);
+  }, [align, foldEnd, inset, placement, pin, live, measured.w, measured.h]);
 
   return (
     <div
@@ -725,9 +707,6 @@ export const Draw = forwardRef<DrawHandle, DrawProps>(function Draw(
             onCollapse={() => setCollapsed(true)}
             onExpand={() => setCollapsed(false)}
             shift={fold}
-            /* Half the bar's length, less half the disc it closes into, less
-               the margin it keeps from the corner. The disc ends up 56 across
-               whichever way the bar is laid, so this is the same either way. */
             icon={
               <ToolIcon
                 id={tool.active === "eraser" ? "eraser" : tool.active}
