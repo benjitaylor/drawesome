@@ -51,6 +51,7 @@ The eraser takes away area rather than whole strokes, so you can rub out part of
 | `background` | `string` | `"#ffffff"` | Any CSS colour, `"transparent"` to paint nothing, or `"checker"` |
 | `initialStrokes` | `Stroke[]` | `[]` | Strokes to open with |
 | `onChange` | `(strokes) => void` | | Fires on every finished stroke and every erase |
+| `onProgress` | `(points, tool) => void` | | Fires while a stroke is being drawn — where it starts, and on every move that extends it |
 | `className` | `string` | | Passed to the root element, along with `style` |
 | `style` | `CSSProperties` | | |
 
@@ -139,6 +140,17 @@ await draw.current.download('sketch', 'png', 2)
 ```
 
 Strokes are plain data: store what `onChange` gives you and hand it back as `initialStrokes`.
+
+To follow a mark while it's still being made — mirroring it onto another screen, say — `onProgress` reports the stroke as it grows:
+
+```tsx
+<Draw
+  onProgress={(points, tool) => send({ points, tool })}
+  onChange={(strokes) => send({ strokes })}
+/>
+```
+
+It fires where the stroke starts and again on every move that extends it, never on release: `onChange` is the end of a stroke. The points are the live array, so copy what you keep — though a finished stroke carries its own copy, so a kept array can't reach inside one.
 
 ## Pieces
 
