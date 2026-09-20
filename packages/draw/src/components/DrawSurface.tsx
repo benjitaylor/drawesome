@@ -33,6 +33,15 @@ export type DrawSurfaceProps = {
   /** CSS colour, `"transparent"` to paint nothing, or `"checker"`. */
   background?: string;
   tool: Tool;
+  /**
+   * The stroke in progress, every time it grows: once where it starts and
+   * again on each move that extends it, with the tool drawing it.
+   *
+   * Nothing is reported when the pointer lifts — the finished stroke arrives
+   * through `drawing.commit`, and it carries points of its own, so a listener
+   * keeping the last array it was given cannot reach inside it.
+   */
+  onProgress?: (points: readonly Point[], tool: Tool) => void;
   /** Show a ring at the pointer at the brush's true size. Off for touch-only. */
   showBrushCursor?: boolean;
   /** Ignore all input — the surface is inert but still shows the drawing. */
@@ -63,6 +72,7 @@ export function DrawSurface({
   board,
   background = "#ffffff",
   tool,
+  onProgress,
   showBrushCursor = true,
   disabled = false,
   className,
@@ -147,6 +157,7 @@ export function DrawSurface({
     const p: Point = [x, y, e.pressure || 0.5];
     pointsRef.current = [p];
     setCurrent([p]);
+    onProgress?.(pointsRef.current, tool);
   };
 
   const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -217,6 +228,7 @@ export function DrawSurface({
         ...runPoints(st.anchor, tip, pressure),
       ];
       setCurrent(pointsRef.current);
+      onProgress?.(pointsRef.current, tool);
       return;
     }
 
@@ -229,6 +241,7 @@ export function DrawSurface({
 
     pointsRef.current = [...pts, [x, y, pressure]];
     setCurrent(pointsRef.current);
+    onProgress?.(pointsRef.current, tool);
   };
 
   const endGesture = (e?: React.PointerEvent) => {
@@ -244,6 +257,11 @@ export function DrawSurface({
     setCurrent([]);
     if (!pts.length) return;
 
+    // A listener was handed this very array on the last move. The stroke gets
+    // a copy so that holding on to what onProgress reported can never reach
+    // inside a finished one; with no listener nobody has it, so nothing to do.
+    const points = onProgress ? [...pts] : pts;
+
     drawing.commit([
       ...drawing.strokes,
       tool.kind === "eraser"
@@ -253,7 +271,7 @@ export function DrawSurface({
             color: "#000",
             size: tool.size,
             opacity: 1,
-            points: pts,
+            points,
             erase: true,
           }
         : {
@@ -262,7 +280,7 @@ export function DrawSurface({
             color: tool.color,
             size: tool.size,
             opacity: tool.opacity,
-            points: pts,
+            points,
             shape: { ...tool.shape, simulatePressure: !realPressure.current },
           },
     ]);

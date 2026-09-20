@@ -11,7 +11,7 @@ import {
 import { PENS, PEN_BY_ID } from "../engine/pens";
 import { toPng, toSvg } from "../engine/serialize";
 import type { TooltipOptions } from "./Tooltip";
-import type { Board, PenId, Stroke, ToolId } from "../engine/types";
+import type { Board, PenId, Point, Stroke, ToolId } from "../engine/types";
 import { useDrawing } from "../hooks/use-drawing";
 import { DrawSurface, type Tool } from "./DrawSurface";
 import { Toolbar, type ToolState } from "./Toolbar";
@@ -95,6 +95,18 @@ export type DrawProps = {
   /** Strokes to start from. */
   initialStrokes?: Stroke[];
   onChange?: (strokes: Stroke[]) => void;
+  /**
+   * The stroke in progress, every time it grows: once where it starts and
+   * again on each move that extends it, with the tool in hand.
+   *
+   * `onChange` only fires once the pointer lifts, and the points being drawn
+   * are the surface's own state, so this is the only view of a mark while it
+   * is still being made — for mirroring it elsewhere as it is drawn. Nothing
+   * is reported on lift: `onChange` is the end of a stroke, and it carries
+   * points of its own, so a listener keeping the last array it was given
+   * cannot reach inside a finished stroke.
+   */
+  onProgress?: (points: readonly Point[], tool: Tool) => void;
   /** Turn the built-in chrome off and drive it yourself. */
   chrome?: boolean;
   /**
@@ -162,6 +174,7 @@ export const Draw = forwardRef<DrawHandle, DrawProps>(function Draw(
     background = "#ffffff",
     initialStrokes,
     onChange,
+    onProgress,
     chrome = true,
     motion,
     placement = "bottom",
@@ -646,6 +659,7 @@ export const Draw = forwardRef<DrawHandle, DrawProps>(function Draw(
         board={surfaceBoard}
         background={background}
         tool={surfaceTool}
+        onProgress={onProgress}
         disabled={chrome && collapsed && !drawWhenMinimized}
         className={css.surface}
       />
